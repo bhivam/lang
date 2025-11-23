@@ -1,18 +1,21 @@
 use std::fs;
 
-use lang::scan_source;
+use lang::{lexer, parser::Parser};
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let contents = match fs::read_to_string("data/source.lg") {
         Ok(contents) => contents,
         Err(error) => {
-            return Err(format!("Failed to read data from file: {error}"));
+            return Err(Box::new(error));
         }
     };
 
-    let tokens = scan_source(&contents);
+    let tokens = lexer::scan(&contents)?;
 
-    print!("{tokens:?}");
+    let mut parser = Parser::new(tokens);
+    let expr = parser.parse()?;
+
+    println!("{:#?}", expr);
 
     Ok(())
 }
